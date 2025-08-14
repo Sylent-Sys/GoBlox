@@ -1,33 +1,54 @@
 import './style.css';
-import * as THREE from 'three';
+import { Renderer } from './Renderer.ts';
+import { FpsCamera } from './Camera.ts';
+import { VoxelScene } from './Scene.ts';
+import { PlayerController } from './Player.ts';
+import { CAMERA_FAR, CAMERA_FOV, CAMERA_NEAR, PLAYER_SPAWN } from './Constants.ts';
+import { debugLog } from './Debug.ts';
 
-const width = window.innerWidth, height = window.innerHeight;
+const appRoot = document.getElementById('app') ?? document.body;
 
-// init
+const width = window.innerWidth;
+const height = window.innerHeight;
 
-const camera = new THREE.PerspectiveCamera(70, width / height, 0.01, 10);
-camera.position.z = 1;
+const renderer = new Renderer(appRoot, width, height);
+const camera = new FpsCamera(CAMERA_FOV, width / height, CAMERA_NEAR, CAMERA_FAR);
+renderer.scene.add(camera.object);
+debugLog('App init: renderer and camera created', { width, height, aspect: width / height });
 
-const scene = new THREE.Scene();
+let voxelScene: VoxelScene;
+let player: PlayerController;
 
-const geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
-const material = new THREE.MeshNormalMaterial();
+const fixed = 1 / 60;
+const accumulator = { value: 0 };
+let lastTime = performance.now();
 
-const mesh = new THREE.Mesh(geometry, material);
-scene.add(mesh);
+async function init() {
+  voxelScene = await VoxelScene.create(renderer.scene);
+	debugLog('VoxelScene created');
+  player = new PlayerController(voxelScene.physics, camera, PLAYER_SPAWN.clone(), renderer.scene);
+  player.attachInput(renderer.renderer.domElement);
+	debugLog('PlayerController created at spawn', { spawn: PLAYER_SPAWN });
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(width, height);
-renderer.setAnimationLoop(animate);
-document.body.appendChild(renderer.domElement);
+  window.addEventListener('resize', () => {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    renderer.setSize(w, h);
+    camera.setAspect(w / h);
+  });
 
-// animation
-
-function animate(time: number) {
-
-  mesh.rotation.x = time / 2000;
-  mesh.rotation.y = time / 1000;
-
-  renderer.render(scene, camera);
-
+  requestAnimationFrame(loop);
 }
+
+function loop(now: number) {
+  const dt = Math.min(0.05, (now - lastTime) / 1000);
+  lastTime = now;
+
+  voxelScene.physics.stepSimulation(fixed, 3, accumulator, dt);
+  player.update(dt);
+
+  renderer.renderer.render(renderer.scene, camera.camera);
+  requestAnimationFrame(loop);
+}
+
+init();
