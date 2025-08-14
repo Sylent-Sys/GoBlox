@@ -77,6 +77,35 @@ export class PhysicsSystem {
 		return handle;
 	}
 
+	/** Create a generic dynamic capsule body for simple mobs/NPCs */
+	createDynamicCapsule(
+		height: number,
+		radius: number,
+		startPosition: THREE.Vector3,
+		options: { friction?: number; restitution?: number; density?: number; lockRotations?: boolean; canSleep?: boolean } = {}
+	): { body: RigidBody; collider: Collider } {
+		const {
+			friction = 0.8,
+			restitution = 0.0,
+			density = 5.0,
+			lockRotations = true,
+			canSleep = true,
+		} = options;
+
+		const bodyDesc = RigidBodyDesc.dynamic()
+			.setTranslation(startPosition.x, startPosition.y, startPosition.z)
+			.setCanSleep(canSleep);
+		if (lockRotations) bodyDesc.lockRotations();
+		const body = this.world.createRigidBody(bodyDesc);
+		const halfHeight = Math.max(0, height * 0.5 - radius);
+		const colliderDesc = ColliderDesc.capsule(halfHeight, radius)
+			.setFriction(friction)
+			.setRestitution(restitution)
+			.setDensity(density);
+		const collider = this.world.createCollider(colliderDesc, body);
+		return { body, collider };
+	}
+
     getSurfaceHeightBelow(start: THREE.Vector3, maxDistance = SURFACE_PROBE_MAX_DISTANCE): number | undefined {
 		const ray = new RAPIER.Ray({ x: start.x, y: start.y, z: start.z }, { x: 0, y: -1, z: 0 });
 		const hit = this.world.castRay(ray, maxDistance, true);

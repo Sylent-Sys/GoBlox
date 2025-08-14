@@ -3,6 +3,7 @@ import { PhysicsSystem } from './PhysicsSystem.ts';
 import { SHADOW_MAP_SIZE } from './Constants.ts';
 import { debugLog } from './Debug.ts';
 import { VoxelWorld } from './VoxelWorld.ts';
+import { Chicken } from './characters/Chicken.ts';
 
 export class VoxelScene {
 	public readonly threeScene: THREE.Scene;
@@ -10,6 +11,7 @@ export class VoxelScene {
 	public readonly sun: THREE.DirectionalLight;
 	public readonly ambient: THREE.AmbientLight;
     public readonly world: VoxelWorld;
+    public readonly mobs: { chickens: Chicken[] } = { chickens: [] };
 
     private constructor(threeScene: THREE.Scene, physics: PhysicsSystem, sun: THREE.DirectionalLight, ambient: THREE.AmbientLight, world: VoxelWorld) {
 		this.threeScene = threeScene;
@@ -43,6 +45,14 @@ export class VoxelScene {
         const scene = new VoxelScene(baseScene, physics, sun, ambient, world);
         // Expose world on scene for player access without circular deps
         (baseScene as unknown as { __world: VoxelWorld }).__world = world;
+        // Spawn a few chickens near origin
+        for (let i = 0; i < 5; i++) {
+            const x = (Math.random() - 0.5) * 10;
+            const z = (Math.random() - 0.5) * 10;
+            const y = 2.0;
+            const chicken = new Chicken(physics, baseScene, new THREE.Vector3(x, y, z));
+            scene.mobs.chickens.push(chicken);
+        }
         return scene;
 	}
 }

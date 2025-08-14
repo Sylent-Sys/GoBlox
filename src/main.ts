@@ -7,6 +7,7 @@ import { CAMERA_FAR, CAMERA_FOV, CAMERA_NEAR, PLAYER_SPAWN, VOID_FALL_LIMIT_Y } 
 import { debugLog } from './Debug.ts';
 import { BlockType } from './VoxelWorld.ts';
 import type { BlockId } from './VoxelWorld.ts';
+import { Chicken } from './characters/Chicken.ts';
 
 const appRoot = document.getElementById('app') ?? document.body;
 
@@ -22,6 +23,7 @@ let voxelScene: VoxelScene;
 let player: PlayerController;
 let isDead = false;
 let deathScreenEl: HTMLElement | null = null;
+let chickens: Chicken[] = [];
 
 const fixed = 1 / 60;
 const accumulator = { value: 0 };
@@ -30,6 +32,7 @@ let lastTime = performance.now();
 async function init() {
   voxelScene = await VoxelScene.create(renderer.scene);
 	debugLog('VoxelScene created');
+  chickens = voxelScene.mobs.chickens;
   player = new PlayerController(voxelScene.physics, camera, PLAYER_SPAWN.clone(), renderer.scene);
   player.attachInput(renderer.renderer.domElement);
 	debugLog('PlayerController created at spawn', { spawn: PLAYER_SPAWN });
@@ -89,6 +92,8 @@ function loop(now: number) {
 
   if (!isDead) {
     player.update(dt);
+    // Update chickens
+    for (let i = 0; i < chickens.length; i++) chickens[i].update(dt);
   }
 
   renderer.renderer.render(renderer.scene, camera.camera);
