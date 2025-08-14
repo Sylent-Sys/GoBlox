@@ -51,6 +51,14 @@ export class PhysicsSystem {
 		return collider;
 	}
 
+	removeCollider(collider: Collider): void {
+		try {
+			this.world.removeCollider(collider, true);
+		} catch {
+			// ignore if collider already removed
+		}
+	}
+
 	createPlayerCapsule(height: number, radius: number, startPosition: THREE.Vector3): PlayerPhysicsHandle {
 		const bodyDesc = RigidBodyDesc.dynamic()
 			.setTranslation(startPosition.x, startPosition.y, startPosition.z)

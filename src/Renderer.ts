@@ -12,6 +12,9 @@ export class Renderer {
 		this.renderer.outputColorSpace = THREE.SRGBColorSpace;
 		this.renderer.shadowMap.enabled = true;
 		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        // Improve shadow acne/flicker on large flat surfaces
+        this.renderer.shadowMap.autoUpdate = true;
+        this.renderer.shadowMap.needsUpdate = true;
 
 		container.appendChild(this.renderer.domElement);
 

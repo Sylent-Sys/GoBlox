@@ -18,7 +18,9 @@ import {
     PLAYER_LANDING_SHAKE_INTENSITY,
     PLAYER_SNAP_GROUND_EPSILON,
 } from './Constants.ts';
-import { TPS_CAMERA_OFFSET, VIEW_TOGGLE_KEY } from './Constants.ts';
+import { TPS_CAMERA_OFFSET, VIEW_TOGGLE_KEY, BLOCK_RAYCAST_DISTANCE } from './Constants.ts';
+import { VoxelWorld, BlockType } from './VoxelWorld.ts';
+import type { BlockId } from './VoxelWorld.ts';
 
 type MovementState = {
 	forward: boolean;
@@ -46,6 +48,7 @@ export class PlayerController {
 	private jumpQueued = false;
     private thirdPerson = false;
     private frontView = false;
+    private enabled = true;
 
     constructor(physics: PhysicsSystem, camera: FpsCamera, spawn: THREE.Vector3, scene: THREE.Scene) {
 		this.physics = physics;
@@ -140,9 +143,24 @@ export class PlayerController {
             setKey(e.code, true);
         });
 		document.addEventListener('keyup', (e) => setKey(e.code, false));
+
+		// Mouse block interactions
+		canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+		document.addEventListener('mousedown', (e) => {
+			if (document.pointerLockElement !== canvas) return;
+			if (e.button === 0) {
+				this.tryEditBlock(false);
+			} else if (e.button === 2) {
+				this.tryEditBlock(true);
+			}
+		});
 	}
 
 	update(dtSeconds: number) {
+		if (!this.enabled) {
+			this.camera.update(dtSeconds);
+			return;
+		}
 		// camera look
 		this.camera.lookYawPitch(this.yaw, this.pitch);
 
@@ -203,6 +221,81 @@ export class PlayerController {
 		this.lastGrounded = grounded;
 
 		this.camera.update(dtSeconds);
+
+		// Update highlight on targeted block if a world is present on scene
+		const sceneRef = (this as unknown as { __scene?: THREE.Scene }).__scene;
+		const world = (sceneRef as unknown as { __world?: VoxelWorld })?.__world;
+		if (world) {
+			const ray = this.getViewRay();
+			const hit = world.raycast(ray.origin, ray.direction, BLOCK_RAYCAST_DISTANCE);
+			if (hit) {
+				world.setHighlightAtCell(hit.gridX, hit.gridY, hit.gridZ);
+			} else {
+				world.clearHighlight();
+			}
+		}
+	}
+
+	setEnabled(enabled: boolean): void {
+		this.enabled = enabled;
+	}
+
+	getPositionY(): number {
+		const t = this.handle.body.translation();
+		return t.y;
+	}
+
+	respawn(spawn: THREE.Vector3): void {
+		const feetOffset = this.capsuleHeight * 0.5;
+		const probeStart = new THREE.Vector3(spawn.x, spawn.y + 5, spawn.z);
+		const groundY = this.physics.getSurfaceHeightBelow(probeStart);
+		let targetY = spawn.y;
+		if (groundY !== undefined) {
+			targetY = groundY + feetOffset + PLAYER_SNAP_GROUND_EPSILON;
+		}
+		this.handle.body.setTranslation({ x: spawn.x, y: targetY, z: spawn.z }, true);
+		this.handle.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+		this.handle.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+		this.camera.setPosition(spawn.x, targetY + this.eyeOffsetFromCenter, spawn.z);
+		this.character.setFeetPosition(spawn.x, targetY - feetOffset, spawn.z);
+		this.enabled = true;
+	}
+
+	// Wire backreferences to allow player -> world access
+	setSceneReferences(scene: THREE.Scene, world: VoxelWorld): void {
+		(this as unknown as { __scene: THREE.Scene }).__scene = scene;
+		(scene as unknown as { __world: VoxelWorld }).__world = world;
+	}
+
+	private getViewRay(): { origin: THREE.Vector3; direction: THREE.Vector3 } {
+		const origin = new THREE.Vector3();
+		origin.copy(this.camera.camera.getWorldPosition(new THREE.Vector3()));
+		const dir = new THREE.Vector3();
+		this.camera.camera.getWorldDirection(dir);
+		return { origin, direction: dir.normalize() };
+	}
+
+	private tryEditBlock(place: boolean): void {
+		const sceneRef = (this as unknown as { __scene?: THREE.Scene }).__scene;
+		const world = (sceneRef as unknown as { __world?: VoxelWorld })?.__world;
+		if (!world) return;
+		const ray = this.getViewRay();
+		const hit = world.raycast(ray.origin, ray.direction, BLOCK_RAYCAST_DISTANCE);
+		if (!hit) return;
+		if (!place) {
+			// remove targeted block
+			world.setBlock(hit.gridX, hit.gridY, hit.gridZ, BlockType.Air);
+		} else {
+			// place block on face
+			const nx = Math.sign(hit.faceNormal.x);
+			const ny = Math.sign(hit.faceNormal.y);
+			const nz = Math.sign(hit.faceNormal.z);
+			const px = hit.gridX + nx;
+			const py = hit.gridY + ny;
+			const pz = hit.gridZ + nz;
+			const desired = (sceneRef as unknown as { __placeBlock?: BlockId }).__placeBlock ?? BlockType.Stone;
+			world.setBlock(px, py, pz, desired as BlockId);
+		}
 	}
 }
 

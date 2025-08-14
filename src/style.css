@@ -2,3 +2,65 @@
     margin: 0;
     padding: 0;
 }
+
+#ui {
+	position: fixed;
+	top: 12px;
+	left: 12px;
+	z-index: 10;
+	background: rgba(0,0,0,0.35);
+	backdrop-filter: blur(4px);
+	border-radius: 8px;
+	padding: 8px 10px;
+	color: #fff;
+	font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+	font-size: 14px;
+}
+
+#ui .row {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+}
+
+.block-btn {
+	appearance: none;
+	border: 1px solid rgba(255,255,255,0.3);
+	background: rgba(255,255,255,0.1);
+	color: #fff;
+	padding: 6px 10px;
+	border-radius: 6px;
+	cursor: pointer;
+	transition: background 120ms ease;
+}
+.block-btn:hover { background: rgba(255,255,255,0.2); }
+.block-btn.active { outline: 2px solid #fff; }
+
+#death-screen {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0,0,0,0.75);
+	z-index: 100;
+	display: none;
+	align-items: center;
+	justify-content: center;
+}
+
+#death-screen .panel {
+	background: rgba(0,0,0,0.6);
+	backdrop-filter: blur(6px);
+	border: 1px solid rgba(255,255,255,0.25);
+	border-radius: 10px;
+	padding: 24px 28px;
+	color: #fff;
+	font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+	text-align: center;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+#death-screen.visible { display: flex; }

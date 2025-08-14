@@ -39,3 +39,12 @@ export const PLAYER_SPAWN = new THREE.Vector3(0, WORLD_Y_LEVEL + 2.5, 6);
 
 // Blocks
 export const BLOCK_SIZE = 1;
+export const BLOCK_RAYCAST_DISTANCE = 6;
+
+// Voxel world dimensions (in blocks)
+export const WORLD_BLOCKS_X = 48;
+export const WORLD_BLOCKS_Y = 16;
+export const WORLD_BLOCKS_Z = 48;
+
+// Death / Void
+export const VOID_FALL_LIMIT_Y = WORLD_Y_LEVEL - 64;
