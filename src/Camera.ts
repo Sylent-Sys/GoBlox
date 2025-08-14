@@ -4,6 +4,7 @@ import { CAMERA_SHAKE_DECAY } from './Constants.ts';
 export class FpsCamera {
 	public readonly camera: THREE.PerspectiveCamera;
 	private readonly anchor: THREE.Object3D;
+    private readonly pitchPivot: THREE.Object3D;
     private shakeAmount = 0;
     private shakeDecay = CAMERA_SHAKE_DECAY;
 	private tmpOffset = new THREE.Vector3();
@@ -13,7 +14,9 @@ export class FpsCamera {
 	constructor(fov = 75, aspect = 1, near = 0.1, far = 1000) {
 		this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 		this.anchor = new THREE.Object3D();
-		this.anchor.add(this.camera);
+        this.pitchPivot = new THREE.Object3D();
+        this.anchor.add(this.pitchPivot);
+        this.pitchPivot.add(this.camera);
 	}
 
 	get object(): THREE.Object3D {
@@ -39,7 +42,8 @@ export class FpsCamera {
 
     lookYawPitch(yawRadians: number, pitchRadians: number): void {
         this.anchor.rotation.set(0, yawRadians + this.yawOffset, 0, 'YXZ');
-		this.camera.rotation.set(pitchRadians, 0, 0, 'YXZ');
+        this.pitchPivot.rotation.set(pitchRadians, 0, 0, 'XYZ');
+		this.camera.rotation.set(0, 0, 0, 'XYZ');
 	}
 
 	addShake(intensity: number): void {

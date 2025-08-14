@@ -75,8 +75,8 @@ export class PlayerController {
     private applyViewMode() {
         if (this.thirdPerson) {
             // Behind or front view depending on flag
-            const offset = this.frontView ? new THREE.Vector3(0, 0, 3) : TPS_CAMERA_OFFSET;
-            this.camera.setBaseOffset(offset);
+			const offset = this.frontView ? new THREE.Vector3(0, 0, 3) : TPS_CAMERA_OFFSET;
+			this.camera.setBaseOffset(offset);
             this.camera.setYawOffset(this.frontView ? Math.PI : 0);
         } else {
             this.camera.setBaseOffset(new THREE.Vector3(0, 0, 0));
@@ -85,6 +85,8 @@ export class PlayerController {
         this.character.setVisible(this.thirdPerson);
         debugLog('View mode set', { mode: this.thirdPerson ? (this.frontView ? 'TPS-FRONT' : 'TPS-BEHIND') : 'FPS' });
     }
+
+    
 
     private toggleViewMode() {
         this.thirdPerson = !this.thirdPerson;
@@ -163,6 +165,8 @@ export class PlayerController {
 		}
 		// camera look
 		this.camera.lookYawPitch(this.yaw, this.pitch);
+
+        // Keep base offset as set by view mode; no dynamic parabolic adjustment
 
 		// move input relative to camera facing (projected on ground)
 		this.desiredMove.set(0, 0, 0);

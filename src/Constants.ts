@@ -21,6 +21,9 @@ export const SHADOW_MAP_SIZE = 2048;
 export const CAMERA_SHAKE_DECAY = 2.5;
 export const TPS_CAMERA_OFFSET = new THREE.Vector3(0, 0.3, 3.0);
 export const VIEW_TOGGLE_KEY = 'KeyV';
+// TPS camera vertical movement curve (parabolic path params)
+export const TPS_PARABOLA_MIN_DISTANCE = 1.8; // closest distance at pitch extremes
+export const TPS_PARABOLA_VERTICAL_AMPLITUDE = 1.0; // vertical displacement at pitch extremes
 
 // Player
 export const PLAYER_CAPSULE_HEIGHT = 1.75;
