@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { PLAYER_CAPSULE_HEIGHT, PLAYER_WALK_SPEED } from './Constants.ts';
+import { PLAYER_CAPSULE_HEIGHT, PLAYER_WALK_SPEED } from '../Constants.ts';
 
 export class GobloxCharacter {
     public readonly object: THREE.Group;

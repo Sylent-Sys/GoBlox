@@ -3,7 +3,7 @@ import { FpsCamera } from './Camera.ts';
 import { PhysicsSystem } from './PhysicsSystem.ts';
 import type { PlayerPhysicsHandle } from './PhysicsSystem.ts';
 import { debugLog } from './Debug.ts';
-import { GobloxCharacter } from './Character.ts';
+import { GobloxCharacter } from './characters/Character.ts';
 import {
     PLAYER_CAPSULE_HEIGHT,
     PLAYER_CAPSULE_RADIUS,
